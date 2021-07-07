@@ -3,13 +3,19 @@ import { Button } from "antd";
 import Handsontable from "handsontable";
 import { registerLanguageDictionary, zhCN } from "handsontable/i18n";
 import React from "react";
-import ReactDOM from "react-dom";
 import "../../../node_modules/handsontable/dist/handsontable.full.css";
 import licenseGen from "../../utils/licenseGen";
 import ModalEdit from "./ModalEdit";
 registerLanguageDictionary(zhCN);
 
+let componentInstance;
+
 export default class App extends React.Component {
+  constructor(props: Props) {
+    super(props);
+    componentInstance = this;
+  }
+
   modal = undefined;
 
   hotTable = undefined;
@@ -24,46 +30,44 @@ export default class App extends React.Component {
     autoColumnSize: false,
     mergeCells: JSON.parse(localStorage.getItem("mergeCells") || "[]"),
     language: zhCN.languageCode,
+    editor: false,
+    readOnly: true,
     // readOnly: true,
     data: JSON.parse(localStorage.getItem("data")) || undefined,
     cell: JSON.parse(localStorage.getItem("cell")) || undefined,
     // editor: true,
     ...JSON.parse(localStorage.getItem("initConfig") || "{}"),
-    cells: function (row, col, prop) {
-      const cellProperties = { readOnly: false };
-      const visualRowIndex = this.instance.toVisualRow(row);
-      const visualColIndex = this.instance.toVisualColumn(col);
-
-      if (visualRowIndex === 0 && visualColIndex === 0) {
-        cellProperties.readOnly = true;
-        this.renderer = (
-          instance,
-          td,
-          row,
-          col,
-          prop,
-          value,
-          cellProperties
-        ) => {
-          console.log("value", td, row, col, prop, value, cellProperties);
-
-          const child = <ModalEdit>{1231231}</ModalEdit>;
-          // Handsontable.dom.empty(td);
-          // ReactDOM.render(child, td);
-          Handsontable.dom.addEvent(td, "click", function (event) {
-            this.modal?.setState({
-              visible: true,
-            });
-          });
-          td.innerHTML = value;
-
-          return td;
-        };
-      }
-
-      return cellProperties;
-    },
     licenseKey: licenseGen(), //license,必要,由生成器生成
+  };
+
+  cellRenderer = function (row, col, prop) {
+    const cellProperties = { readOnly: false };
+
+    cellProperties.renderer = (
+      instance,
+      td,
+      row,
+      col,
+      prop,
+      value,
+      cellProperties
+    ) => {
+      console.log("123123");
+      // Handsontable.dom.empty(td);
+      // ReactDOM.render(child, td);
+      Handsontable.dom.addEvent(td, "click", (e) => {
+        console.log("eeee");
+        console.log("instance", componentInstance.modal);
+        componentInstance.modal?.setState({
+          visible: true,
+        });
+      });
+      td.innerHTML = value;
+
+      return td;
+    };
+
+    return cellProperties;
   };
 
   save = () => {
@@ -95,6 +99,7 @@ export default class App extends React.Component {
             this.hotTable = hotTable;
           }}
           settings={this.hotSettings}
+          cells={this.cellRenderer}
         />
         <ModalEdit
           ref={(ref) => {

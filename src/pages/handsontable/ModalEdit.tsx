@@ -1,4 +1,5 @@
 import { Button, Form, Input, Modal, Row } from "antd";
+import "../../../node_modules/antd/dist/antd.min.css";
 import React, { Component } from "react";
 
 const formItemLayout = {
@@ -26,6 +27,7 @@ export default class ModalEdit extends Component {
   form = undefined;
 
   hideModal = () => {
+    console.log("hide");
     this.form?.resetFields();
     this.setState({
       visible: false,
